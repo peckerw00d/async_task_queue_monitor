@@ -27,4 +27,6 @@ class Monitor:
             print(f"❌ Task {msg.task_id} failed: {msg.result}")
 
         else:
-            print(f"✅ Task {msg.task_id} completed in {msg.duration:.2f}s")
+            print(
+                f"✅ Task {msg.task_id} completed in {msg.duration:.2f}s: {msg.result}"
+            )

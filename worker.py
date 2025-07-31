@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 import aio_pika
 
@@ -29,19 +30,31 @@ class Worker:
                         msg = TaskMessage.model_validate_json(message.body.decode())
 
                         if msg.action == Action.WAIT:
+                            start = time.time()
                             result = await self._process_wait_message(message=msg)
+                            end = time.time()
+                            duration = end - start
+                            msg.duration += duration
                             await self._publish_task_results(
                                 message=msg, result=result, channel=channel
                             )
 
                         elif msg.action == Action.FAIL:
+                            start = time.time()
                             result = await self._process_fail_message()
+                            end = time.time()
+                            duration = end - start
+                            msg.duration = duration
                             await self._publish_task_results(
                                 message=msg, result=result, channel=channel
                             )
 
                         else:
+                            start = time.time()
                             result = await self._process_ping_message()
+                            end = time.time()
+                            duration = end - start
+                            msg.duration = duration
                             await self._publish_task_results(
                                 message=msg, result=result, channel=channel
                             )
@@ -53,7 +66,7 @@ class Worker:
             task_id=message.task_id,
             status="error" if message.action == Action.FAIL else "success",
             result=result,
-            duration=(message.duration + 0.1) if message.action == Action.WAIT else 0.1,
+            duration=message.duration,
         )
         await channel.default_exchange.publish(
             aio_pika.Message(
