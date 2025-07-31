@@ -39,3 +39,19 @@ class Producer:
                 )
             )
             await asyncio.sleep(3)
+
+
+if __name__ == "__main__":
+    import os
+
+    import dotenv
+
+    dotenv.load_dotenv()
+    rabbit_url = os.getenv("RABBITMQ_URL", "amqp://rmuser:rmpassword@rabbitmq:5672/")
+
+    async def run():
+        connection = await aio_pika.connect_robust(rabbit_url)
+        producer = Producer(connection=connection, task_queue="task_queue")
+        await producer.start()
+
+    asyncio.run(run())

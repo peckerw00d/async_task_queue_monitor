@@ -30,3 +30,20 @@ class Monitor:
             print(
                 f"✅ Task {msg.task_id} completed in {msg.duration:.2f}s: {msg.result}"
             )
+
+
+if __name__ == "__main__":
+    import asyncio
+    import os
+
+    import dotenv
+
+    dotenv.load_dotenv()
+    rabbit_url = os.getenv("RABBITMQ_URL", "amqp://rmuser:rmpassword@rabbitmq:5672/")
+
+    async def run():
+        connection = await aio_pika.connect_robust(rabbit_url)
+        monitor = Monitor(connection=connection, result_queue="result_queue")
+        await monitor.start()
+
+    asyncio.run(run())

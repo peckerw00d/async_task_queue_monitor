@@ -9,6 +9,47 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - custom
+
+  producer:
+    build: .
+    command: python producer.py
+    environment:
+      - RABBITMQ_URL=amqp://rmuser:rmpassword@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - custom
+
+  worker:
+    build: .
+    command: python worker.py
+    environment:
+      - RABBITMQ_URL=amqp://rmuser:rmpassword@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+    networks:
+      - custom
+
+  monitor:
+    build: .
+    command: python monitor.py
+    environment:
+      - RABBITMQ_URL=amqp://rmuser:rmpassword@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
     networks:
       - custom
 

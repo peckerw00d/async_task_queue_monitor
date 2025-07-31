@@ -86,3 +86,21 @@ class Worker:
 
     async def _process_fail_message(self):
         return "Fail!"
+
+
+if __name__ == "__main__":
+    import os
+
+    import dotenv
+
+    dotenv.load_dotenv()
+    rabbit_url = os.getenv("RABBITMQ_URL", "amqp://rmuser:rmpassword@localhost:5672/")
+
+    async def run():
+        connection = await aio_pika.connect_robust(rabbit_url)
+        worker = Worker(
+            connection=connection, task_queue="task_queue", result_queue="result_queue"
+        )
+        await worker.start()
+
+    asyncio.run(run())
